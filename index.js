@@ -148,4 +148,6 @@ client.on("interactionCreate", async interaction => {
 
 // LOGIN
 
+console.log("TOKEN EXISTE?", !!process.env.DISCORD_TOKEN);
+
 client.login(process.env.DISCORD_TOKEN);
