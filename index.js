@@ -148,4 +148,6 @@ client.on("interactionCreate", async interaction => {
 
 // LOGIN
 
+console.log("Tamanho do token:", process.env.DISCORD_TOKEN?.length);
+
 client.login(process.env.DISCORD_TOKEN);
