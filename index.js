@@ -27,9 +27,7 @@ const CARGO_ID = "1534342563488731256";
 // BOT ONLINE
 
 client.once("ready", () => {
-
     console.log(`Bot online como ${client.user.tag}`);
-
 });
 
 
@@ -37,22 +35,23 @@ client.once("ready", () => {
 
 client.on("interactionCreate", async interaction => {
 
+    try {
 
-    // COMANDO /cargo
+        // COMANDO /cargo
 
-    if (interaction.isChatInputCommand()) {
-
-
-        if (interaction.commandName === "cargo") {
+        if (interaction.isChatInputCommand()) {
 
 
-            const embed = new EmbedBuilder()
+            if (interaction.commandName === "cargo") {
 
-                .setColor("#8b00ff")
 
-                .setTitle("🖤 Ganhe seu cargo exclusivo!")
+                const embed = new EmbedBuilder()
 
-                .setDescription(
+                    .setColor("#8b00ff")
+
+                    .setTitle("🖤 Ganhe seu cargo exclusivo!")
+
+                    .setDescription(
 `
 Quer fazer parte da comunidade **LARPANDO**?
 
@@ -60,74 +59,74 @@ Siga as regras, participe da comunidade e receba seu cargo de membro.
 
 Clique no botão abaixo para liberar seu acesso.
 `
-                )
+                    )
 
-                .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
+                    .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
 
-                .setFooter({
-                    text: "LARPANDO • Comunidade"
-                });
-
-
-
-            const botao = new ActionRowBuilder()
-
-                .addComponents(
-
-                    new ButtonBuilder()
-
-                        .setCustomId("receber_cargo")
-
-                        .setLabel("Receber")
-
-                        .setStyle(ButtonStyle.Primary)
-
-                );
+                    .setFooter({
+                        text: "LARPANDO • Comunidade"
+                    });
 
 
 
-            await interaction.reply({
+                const botao = new ActionRowBuilder()
 
-                embeds: [embed],
+                    .addComponents(
 
-                components: [botao]
+                        new ButtonBuilder()
 
-            });
+                            .setCustomId("receber_cargo")
 
+                            .setLabel("Receber")
 
-        }
+                            .setStyle(ButtonStyle.Primary)
 
-    }
-
-
-
-    // BOTÃO RECEBER CARGO
-
-    if (interaction.isButton()) {
-
-
-        if (interaction.customId === "receber_cargo") {
-
-
-            const cargo = interaction.guild.roles.cache.get(CARGO_ID);
+                    );
 
 
 
-            if (!cargo) {
+                await interaction.reply({
 
-                return interaction.reply({
+                    embeds: [embed],
 
-                    content: "❌ Cargo não encontrado.",
-
-                    ephemeral: true
+                    components: [botao]
 
                 });
+
+
+                console.log("/cargo executado");
+
 
             }
 
+        }
 
 
-            try {
+
+        // BOTÃO RECEBER CARGO
+
+        if (interaction.isButton()) {
+
+
+            if (interaction.customId === "receber_cargo") {
+
+
+                const cargo = interaction.guild.roles.cache.get(CARGO_ID);
+
+
+
+                if (!cargo) {
+
+                    return interaction.reply({
+
+                        content: "❌ Cargo não encontrado.",
+
+                        ephemeral: true
+
+                    });
+
+                }
+
 
 
                 await interaction.member.roles.add(cargo);
@@ -143,30 +142,35 @@ Clique no botão abaixo para liberar seu acesso.
                 });
 
 
-
-            } catch (error) {
-
-
-                console.error(error);
-
-
-
-                await interaction.reply({
-
-                    content: "❌ Não consegui entregar o cargo. Verifique minhas permissões.",
-
-                    ephemeral: true
-
-                });
+                console.log("Cargo entregue para:", interaction.user.tag);
 
 
             }
 
+        }
+
+
+    } catch (error) {
+
+
+        console.error("ERRO NA INTERAÇÃO:", error);
+
+
+
+        if (!interaction.replied) {
+
+            await interaction.reply({
+
+                content: "❌ Ocorreu um erro ao executar essa ação.",
+
+                ephemeral: true
+
+            });
 
         }
 
-    }
 
+    }
 
 });
 
