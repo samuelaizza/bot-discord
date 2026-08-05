@@ -1,56 +1,52 @@
 require("dotenv").config();
 
 const {
-Client,
-GatewayIntentBits,
-EmbedBuilder,
-ActionRowBuilder,
-ButtonBuilder,
-ButtonStyle
+    Client,
+    GatewayIntentBits,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
 } = require("discord.js");
 
 
 const client = new Client({
-    intents:[
-        GatewayIntentBits.Guilds
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
     ]
 });
 
 
 // CONFIGURAÇÕES
 
-const TOKEN = process.env.TOKEN;
-
 const CARGO_ID = "1534342563488731256";
-
 const CANAL_ID = "1534343599389540474";
 
 
 // BOT ONLINE
 
 client.once("ready", () => {
-
-console.log(`Bot online como ${client.user.tag}`);
-
+    console.log(`Bot online como ${client.user.tag}`);
 });
-
 
 
 // COMANDO PARA CRIAR A MENSAGEM
 
 client.on("messageCreate", async message => {
 
+    if (message.author.bot) return;
 
-if(message.content === "!cargo") {
+    if (message.content === "!cargo") {
 
+        const embed = new EmbedBuilder()
 
-const embed = new EmbedBuilder()
+            .setColor("#8b00ff")
 
-.setColor("#8b00ff")
+            .setTitle("🖤 Ganhe seu cargo exclusivo!")
 
-.setTitle("🖤 Ganhe seu cargo exclusivo!")
-
-.setDescription(
+            .setDescription(
 `
 Quer fazer parte da comunidade **LARPANDO**?
 
@@ -58,96 +54,98 @@ Siga as regras, participe da comunidade e receba seu cargo de membro.
 
 Clique no botão abaixo para liberar seu acesso.
 `
-)
+            )
 
-.setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png?ex=6a73cbe1&is=6a727a61&hm=b189c0d695cde84986d7d3842f9949dfe5ef33b055503e74e9468376f5294411&=&format=webp&quality=lossless")
+            .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
 
-.setFooter({
-text:"LARPANDO • Comunidade"
-});
-
-
-
-const botao = new ActionRowBuilder()
-
-.addComponents(
-
-new ButtonBuilder()
-
-.setCustomId("receber_cargo")
-
-.setLabel("Receber")
-
-.setStyle(ButtonStyle.Primary)
-
-);
+            .setFooter({
+                text: "LARPANDO • Comunidade"
+            });
 
 
+        const botao = new ActionRowBuilder()
+            .addComponents(
 
-message.channel.send({
+                new ButtonBuilder()
 
-embeds:[embed],
+                    .setCustomId("receber_cargo")
 
-components:[botao]
+                    .setLabel("Receber")
+
+                    .setStyle(ButtonStyle.Primary)
+
+            );
+
+
+        await message.channel.send({
+            embeds: [embed],
+            components: [botao]
+        });
+
+    }
 
 });
-
-
-}
-
-
-});
-
-
 
 
 // QUANDO CLICAR NO BOTÃO
 
 client.on("interactionCreate", async interaction => {
 
-
-if(!interaction.isButton()) return;
-
-
-if(interaction.customId === "receber_cargo"){
+    if (!interaction.isButton()) return;
 
 
-const cargo = interaction.guild.roles.cache.get(CARGO_ID);
+    if (interaction.customId === "receber_cargo") {
 
 
+        if (!interaction.guild) return;
 
-if(!cargo){
 
-return interaction.reply({
+        const cargo = interaction.guild.roles.cache.get(CARGO_ID);
 
-content:"❌ Cargo não encontrado.",
 
-ephemeral:true
+        if (!cargo) {
+
+            return interaction.reply({
+                content: "❌ Cargo não encontrado.",
+                ephemeral: true
+            });
+
+        }
+
+
+        try {
+
+            await interaction.member.roles.add(cargo);
+
+
+            await interaction.reply({
+
+                content: "✅ Você recebeu seu cargo com sucesso!",
+
+                ephemeral: true
+
+            });
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            await interaction.reply({
+
+                content: "❌ Não consegui entregar o cargo. Verifique minhas permissões.",
+
+                ephemeral: true
+
+            });
+
+        }
+
+    }
 
 });
 
-}
 
-
-
-await interaction.member.roles.add(cargo);
-
-
-
-interaction.reply({
-
-content:"✅ Você recebeu seu cargo com sucesso!",
-
-ephemeral:true
-
-});
-
-
-}
-
-
-});
-
-
+// LOGIN
 
 client.login(process.env.DISCORD_TOKEN);
