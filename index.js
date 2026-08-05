@@ -44,10 +44,9 @@ client.once("clientReady", () => {
 });
 
 
-// INTERAÇÕES
+// COMANDOS E BOTÕES
 
 client.on("interactionCreate", async interaction => {
-
 
     try {
 
@@ -58,7 +57,6 @@ client.on("interactionCreate", async interaction => {
 
 
             if (interaction.commandName === "cargo") {
-
 
 
                 const embed = new EmbedBuilder()
@@ -77,7 +75,7 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
 `
                     )
 
-                    .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
+                    .setImage("https://cdn.discordapp.com/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
 
                     .setFooter({
 
@@ -112,23 +110,18 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
                 });
 
 
-
             }
-
 
         }
 
 
 
-
-        // BOTÃO DE VERIFICAÇÃO
+        // BOTÃO VERIFICAR
 
         if (interaction.isButton()) {
 
 
-
             if (interaction.customId === "verificar") {
-
 
 
                 const codigo = Math.floor(
@@ -136,7 +129,6 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
                     1000 + Math.random() * 9000
 
                 );
-
 
 
                 captchas.set(
@@ -159,7 +151,7 @@ Digite o código abaixo no chat:
 
 \`${codigo}\`
 
-Você tem 60 segundos para responder.
+Você tem 60 segundos.
 `,
 
                     ephemeral: true
@@ -170,12 +162,9 @@ Você tem 60 segundos para responder.
 
                 setTimeout(() => {
 
-
                     captchas.delete(interaction.user.id);
 
-
                 }, 60000);
-
 
 
             }
@@ -189,7 +178,6 @@ Você tem 60 segundos para responder.
 
 
         console.error("Erro na interação:", error);
-
 
 
         if (!interaction.replied) {
@@ -215,18 +203,15 @@ Você tem 60 segundos para responder.
 
 
 
-// VERIFICA RESPOSTA DO CAPTCHA
+// RESPOSTA DO CAPTCHA
 
 client.on("messageCreate", async message => {
-
 
 
     if (message.author.bot) return;
 
 
-
     const codigo = captchas.get(message.author.id);
-
 
 
     if (!codigo) return;
@@ -234,7 +219,6 @@ client.on("messageCreate", async message => {
 
 
     if (message.content === codigo.toString()) {
-
 
 
         captchas.delete(message.author.id);
@@ -249,7 +233,9 @@ client.on("messageCreate", async message => {
 
 
             return message.reply(
+
                 "❌ Cargo não encontrado."
+
             );
 
 
@@ -258,7 +244,6 @@ client.on("messageCreate", async message => {
 
 
         try {
-
 
 
             await message.member.roles.add(cargo);
@@ -277,6 +262,7 @@ client.on("messageCreate", async message => {
 
 
             console.error(error);
+
 
 
             await message.reply(
@@ -306,7 +292,6 @@ client.on("messageCreate", async message => {
 
 
 });
-
 
 
 
