@@ -1,153 +1,50 @@
-require("dotenv").config();
+require('dotenv').config();
+const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
 
-const {
-    Client,
-    GatewayIntentBits,
-    EmbedBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle
-} = require("discord.js");
-
-
+// Configuração do cliente do bot
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
-    ]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent, // Requer que a opção "Message Content Intent" esteja ATIVADA no Developer Portal
+  ],
 });
 
-
-// CONFIGURAÇÕES
-
-const CARGO_ID = "1534342563488731256";
-const CANAL_ID = "1534343599389540474";
-
-
-// BOT ONLINE
-
-client.once("ready", () => {
-    console.log(`Bot online como ${client.user.tag}`);
+// Evento executado quando o bot se conecta com sucesso
+client.once('clientReady', (c) => {
+  console.log(`✅ Bot online como ${c.user.tag}`);
+  
+  // Define o status do bot
+  c.user.setActivity({
+    name: 'comandos no servidor',
+    type: ActivityType.Watching,
+  });
 });
 
+// Evento de leitura de mensagens
+client.on('messageCreate', async (message) => {
+  // Ignora mensagens enviadas por outros bots ou mensagens privadas
+  if (message.author.bot || !message.guild) return;
 
-// COMANDO PARA CRIAR A MENSAGEM
+  // Comando simples de ping
+  if (message.content === '!ping') {
+    return message.reply(`🏓 Pong! A latência atual é de ${client.ws.ping}ms.`);
+  }
 
-client.on("messageCreate", async message => {
-
-    if (message.author.bot) return;
-
-    if (message.content === "!cargo") {
-
-        const embed = new EmbedBuilder()
-
-            .setColor("#8b00ff")
-
-            .setTitle("🖤 Ganhe seu cargo exclusivo!")
-
-            .setDescription(
-`
-Quer fazer parte da comunidade **LARPANDO**?
-
-Siga as regras, participe da comunidade e receba seu cargo de membro.
-
-Clique no botão abaixo para liberar seu acesso.
-`
-            )
-
-            .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
-
-            .setFooter({
-                text: "LARPANDO • Comunidade"
-            });
-
-
-        const botao = new ActionRowBuilder()
-            .addComponents(
-
-                new ButtonBuilder()
-
-                    .setCustomId("receber_cargo")
-
-                    .setLabel("Receber")
-
-                    .setStyle(ButtonStyle.Primary)
-
-            );
-
-
-        await message.channel.send({
-            embeds: [embed],
-            components: [botao]
-        });
-
-    }
-
+  // Exemplo de outro comando
+  if (message.content === '!oi') {
+    return message.reply(`Olá, ${message.author}! Como posso ajudar?`);
+  }
 });
 
-
-// QUANDO CLICAR NO BOTÃO
-
-client.on("interactionCreate", async interaction => {
-
-    if (!interaction.isButton()) return;
-
-
-    if (interaction.customId === "receber_cargo") {
-
-
-        if (!interaction.guild) return;
-
-
-        const cargo = interaction.guild.roles.cache.get(CARGO_ID);
-
-
-        if (!cargo) {
-
-            return interaction.reply({
-                content: "❌ Cargo não encontrado.",
-                ephemeral: true
-            });
-
-        }
-
-
-        try {
-
-            await interaction.member.roles.add(cargo);
-
-
-            await interaction.reply({
-
-                content: "✅ Você recebeu seu cargo com sucesso!",
-
-                ephemeral: true
-
-            });
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            await interaction.reply({
-
-                content: "❌ Não consegui entregar o cargo. Verifique minhas permissões.",
-
-                ephemeral: true
-
-            });
-
-        }
-
-    }
-
+// Tratamento de erros para evitar que a aplicação caia sem avisar
+process.on('unhandledRejection', (reason, promise) => {
+  console.error(' [Erro Não Tratado]:', reason);
 });
 
+process.on('uncaughtException', (error) => {
+  console.error(' [Exceção Capturada]:', error);
+});
 
-// LOGIN
-
-console.log("Tamanho do token:", process.env.DISCORD_TOKEN?.length);
-
+// Inicialização do Bot usando a variável de ambiente
 client.login(process.env.DISCORD_TOKEN);
