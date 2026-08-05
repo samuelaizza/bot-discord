@@ -148,6 +148,9 @@ client.on("interactionCreate", async interaction => {
 
 // LOGIN
 
-console.log("TOKEN EXISTE?", !!process.env.DISCORD_TOKEN);
+console.log("Variável existe:", process.env.DISCORD_TOKEN ? "SIM" : "NÃO");
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN)
+    .catch(err => {
+        console.error("Erro ao conectar:", err.message);
+    });
