@@ -14,7 +14,9 @@ const {
 
 const client = new Client({
     intents: [
-        GatewayIntentBits.Guilds
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
     ]
 });
 
@@ -24,10 +26,17 @@ const client = new Client({
 const CARGO_ID = "1534342563488731256";
 
 
+// ARMAZENA CAPTCHAS TEMPORARIAMENTE
+
+const captchas = new Map();
+
+
 // BOT ONLINE
 
-client.once("ready", () => {
+client.once("clientReady", () => {
+
     console.log(`Bot online como ${client.user.tag}`);
+
 });
 
 
@@ -36,6 +45,7 @@ client.once("ready", () => {
 client.on("interactionCreate", async interaction => {
 
     try {
+
 
         // COMANDO /cargo
 
@@ -49,22 +59,20 @@ client.on("interactionCreate", async interaction => {
 
                     .setColor("#8b00ff")
 
-                    .setTitle("🖤 Ganhe seu cargo exclusivo!")
+                    .setTitle("🖤 Verificação LARPANDO")
 
                     .setDescription(
 `
-Quer fazer parte da comunidade **LARPANDO**?
+Bem-vindo à comunidade **LARPANDO**!
 
-Siga as regras, participe da comunidade e receba seu cargo de membro.
+Para receber seu cargo de membro, clique no botão abaixo e complete a verificação.
 
-Clique no botão abaixo para liberar seu acesso.
+🔒 Essa etapa existe para evitar bots.
 `
                     )
 
-                    .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
-
                     .setFooter({
-                        text: "LARPANDO • Comunidade"
+                        text: "LARPANDO • Verificação"
                     });
 
 
@@ -75,9 +83,9 @@ Clique no botão abaixo para liberar seu acesso.
 
                         new ButtonBuilder()
 
-                            .setCustomId("receber_cargo")
+                            .setCustomId("verificar")
 
-                            .setLabel("Receber")
+                            .setLabel("🔒 Verificar")
 
                             .setStyle(ButtonStyle.Primary)
 
@@ -94,55 +102,54 @@ Clique no botão abaixo para liberar seu acesso.
                 });
 
 
-                console.log("/cargo executado");
-
-
             }
 
         }
 
 
 
-        // BOTÃO RECEBER CARGO
+        // BOTÃO DE VERIFICAÇÃO
 
         if (interaction.isButton()) {
 
 
-            if (interaction.customId === "receber_cargo") {
+            if (interaction.customId === "verificar") {
 
 
-                const cargo = interaction.guild.roles.cache.get(CARGO_ID);
+                const numero = Math.floor(
+                    1000 + Math.random() * 9000
+                );
 
 
-
-                if (!cargo) {
-
-                    return interaction.reply({
-
-                        content: "❌ Cargo não encontrado.",
-
-                        ephemeral: true
-
-                    });
-
-                }
-
-
-
-                await interaction.member.roles.add(cargo);
+                captchas.set(
+                    interaction.user.id,
+                    numero
+                );
 
 
 
                 await interaction.reply({
 
-                    content: "✅ Você recebeu seu cargo com sucesso!",
+                    content:
+`🔒 **Verificação**
+
+Digite o código abaixo no chat:
+
+\`${numero}\`
+
+Você tem 60 segundos.`,
 
                     ephemeral: true
 
                 });
 
 
-                console.log("Cargo entregue para:", interaction.user.tag);
+
+                setTimeout(() => {
+
+                    captchas.delete(interaction.user.id);
+
+                }, 60000);
 
 
             }
@@ -150,29 +157,81 @@ Clique no botão abaixo para liberar seu acesso.
         }
 
 
-    } catch (error) {
+
+    } catch(error){
+
+        console.error(error);
+
+    }
 
 
-        console.error("ERRO NA INTERAÇÃO:", error);
+});
 
 
 
-        if (!interaction.replied) {
 
-            await interaction.reply({
+// RESPOSTA DO CAPTCHA
 
-                content: "❌ Ocorreu um erro ao executar essa ação.",
+client.on("messageCreate", async message => {
 
-                ephemeral: true
 
-            });
+    if(message.author.bot) return;
+
+
+
+    const captcha = captchas.get(message.author.id);
+
+
+
+    if(!captcha) return;
+
+
+
+    if(message.content === captcha.toString()) {
+
+
+
+        captchas.delete(message.author.id);
+
+
+
+        const cargo = message.guild.roles.cache.get(CARGO_ID);
+
+
+
+        if(!cargo){
+
+            return message.reply(
+                "❌ Cargo não encontrado."
+            );
 
         }
 
 
+
+        await message.member.roles.add(cargo);
+
+
+
+        await message.reply(
+            "✅ Verificação concluída! Você recebeu seu cargo."
+        );
+
+
+
+    } else {
+
+
+        await message.reply(
+            "❌ Código incorreto. Tente novamente."
+        );
+
+
     }
 
+
 });
+
 
 
 // LOGIN
