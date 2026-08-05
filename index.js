@@ -13,11 +13,15 @@ const {
 // CLIENT DO BOT
 
 const client = new Client({
+
     intents: [
+
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
+
     ]
+
 });
 
 
@@ -26,7 +30,7 @@ const client = new Client({
 const CARGO_ID = "1534342563488731256";
 
 
-// ARMAZENA CAPTCHAS TEMPORARIAMENTE
+// ARMAZENA OS CAPTCHAS
 
 const captchas = new Map();
 
@@ -44,6 +48,7 @@ client.once("clientReady", () => {
 
 client.on("interactionCreate", async interaction => {
 
+
     try {
 
 
@@ -53,6 +58,7 @@ client.on("interactionCreate", async interaction => {
 
 
             if (interaction.commandName === "cargo") {
+
 
 
                 const embed = new EmbedBuilder()
@@ -71,8 +77,12 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
 `
                     )
 
+                    .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
+
                     .setFooter({
+
                         text: "LARPANDO • Verificação"
+
                     });
 
 
@@ -102,9 +112,12 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
                 });
 
 
+
             }
 
+
         }
+
 
 
 
@@ -113,17 +126,25 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
         if (interaction.isButton()) {
 
 
+
             if (interaction.customId === "verificar") {
 
 
-                const numero = Math.floor(
+
+                const codigo = Math.floor(
+
                     1000 + Math.random() * 9000
+
                 );
 
 
+
                 captchas.set(
+
                     interaction.user.id,
-                    numero
+
+                    codigo
+
                 );
 
 
@@ -131,13 +152,15 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
                 await interaction.reply({
 
                     content:
-`🔒 **Verificação**
+`
+🔒 **Verificação LARPANDO**
 
 Digite o código abaixo no chat:
 
-\`${numero}\`
+\`${codigo}\`
 
-Você tem 60 segundos.`,
+Você tem 60 segundos para responder.
+`,
 
                     ephemeral: true
 
@@ -147,20 +170,42 @@ Você tem 60 segundos.`,
 
                 setTimeout(() => {
 
+
                     captchas.delete(interaction.user.id);
+
 
                 }, 60000);
 
 
+
             }
+
 
         }
 
 
 
-    } catch(error){
+    } catch(error) {
 
-        console.error(error);
+
+        console.error("Erro na interação:", error);
+
+
+
+        if (!interaction.replied) {
+
+
+            await interaction.reply({
+
+                content: "❌ Ocorreu um erro.",
+
+                ephemeral: true
+
+            });
+
+
+        }
+
 
     }
 
@@ -170,24 +215,25 @@ Você tem 60 segundos.`,
 
 
 
-// RESPOSTA DO CAPTCHA
+// VERIFICA RESPOSTA DO CAPTCHA
 
 client.on("messageCreate", async message => {
 
 
-    if(message.author.bot) return;
+
+    if (message.author.bot) return;
 
 
 
-    const captcha = captchas.get(message.author.id);
+    const codigo = captchas.get(message.author.id);
 
 
 
-    if(!captcha) return;
+    if (!codigo) return;
 
 
 
-    if(message.content === captcha.toString()) {
+    if (message.content === codigo.toString()) {
 
 
 
@@ -199,38 +245,68 @@ client.on("messageCreate", async message => {
 
 
 
-        if(!cargo){
+        if (!cargo) {
+
 
             return message.reply(
                 "❌ Cargo não encontrado."
             );
 
+
         }
 
 
 
-        await message.member.roles.add(cargo);
+        try {
 
 
 
-        await message.reply(
-            "✅ Verificação concluída! Você recebeu seu cargo."
-        );
+            await message.member.roles.add(cargo);
+
+
+
+            await message.reply(
+
+                "✅ Verificação concluída! Você recebeu seu cargo."
+
+            );
+
+
+
+        } catch(error) {
+
+
+            console.error(error);
+
+
+            await message.reply(
+
+                "❌ Não consegui entregar o cargo. Verifique minhas permissões."
+
+            );
+
+
+        }
 
 
 
     } else {
 
 
+
         await message.reply(
+
             "❌ Código incorreto. Tente novamente."
+
         );
 
 
     }
 
 
+
 });
+
 
 
 
