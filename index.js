@@ -6,7 +6,8 @@ const {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonStyle
+    ButtonStyle,
+    MessageFlags
 } = require("discord.js");
 
 
@@ -30,7 +31,7 @@ const client = new Client({
 const CARGO_ID = "1534342563488731256";
 
 
-// ARMAZENA OS CAPTCHAS
+// SISTEMA DE CAPTCHA
 
 const captchas = new Map();
 
@@ -44,7 +45,7 @@ client.once("clientReady", () => {
 });
 
 
-// COMANDOS E BOTÕES
+// INTERAÇÕES
 
 client.on("interactionCreate", async interaction => {
 
@@ -59,9 +60,10 @@ client.on("interactionCreate", async interaction => {
             if (interaction.commandName === "cargo") {
 
 
+
                 const embed = new EmbedBuilder()
 
-                    .setColor("#8b00ff")
+                    .setColor("#ff0080")
 
                     .setTitle("🖤 Verificação LARPANDO")
 
@@ -75,7 +77,7 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
 `
                     )
 
-                    .setImage("https://cdn.discordapp.com/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
+                    .setImage("https://cdn.discordapp.com/attachments/1534347334803132529/1534372903188041779/Gemini_Generated_Image_szywz2szywz2szyw.png")
 
                     .setFooter({
 
@@ -110,18 +112,23 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
                 });
 
 
+
             }
+
 
         }
 
 
 
-        // BOTÃO VERIFICAR
+
+        // BOTÃO DE VERIFICAÇÃO
 
         if (interaction.isButton()) {
 
 
+
             if (interaction.customId === "verificar") {
+
 
 
                 const codigo = Math.floor(
@@ -129,6 +136,7 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
                     1000 + Math.random() * 9000
 
                 );
+
 
 
                 captchas.set(
@@ -154,7 +162,7 @@ Digite o código abaixo no chat:
 Você tem 60 segundos.
 `,
 
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
 
                 });
 
@@ -165,6 +173,7 @@ Você tem 60 segundos.
                     captchas.delete(interaction.user.id);
 
                 }, 60000);
+
 
 
             }
@@ -180,6 +189,7 @@ Você tem 60 segundos.
         console.error("Erro na interação:", error);
 
 
+
         if (!interaction.replied) {
 
 
@@ -187,7 +197,7 @@ Você tem 60 segundos.
 
                 content: "❌ Ocorreu um erro.",
 
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
 
             });
 
@@ -211,7 +221,9 @@ client.on("messageCreate", async message => {
     if (message.author.bot) return;
 
 
+
     const codigo = captchas.get(message.author.id);
+
 
 
     if (!codigo) return;
@@ -219,6 +231,7 @@ client.on("messageCreate", async message => {
 
 
     if (message.content === codigo.toString()) {
+
 
 
         captchas.delete(message.author.id);
