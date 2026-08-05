@@ -150,4 +150,4 @@ ephemeral:true
 
 
 
-client.login(TOKEN);s
+client.login(process.env.DISCORD_TOKEN);
