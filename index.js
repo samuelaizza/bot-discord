@@ -1,50 +1,176 @@
-require('dotenv').config();
-const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
+require("dotenv").config();
 
-// Configuração do cliente do bot
+const {
+    Client,
+    GatewayIntentBits,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
+} = require("discord.js");
+
+
+// CLIENT DO BOT
+
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent, // Requer que a opção "Message Content Intent" esteja ATIVADA no Developer Portal
-  ],
+    intents: [
+        GatewayIntentBits.Guilds
+    ]
 });
 
-// Evento executado quando o bot se conecta com sucesso
-client.once('clientReady', (c) => {
-  console.log(`✅ Bot online como ${c.user.tag}`);
-  
-  // Define o status do bot
-  c.user.setActivity({
-    name: 'comandos no servidor',
-    type: ActivityType.Watching,
-  });
+
+// CONFIGURAÇÕES
+
+const CARGO_ID = "1534342563488731256";
+
+
+// BOT ONLINE
+
+client.once("ready", () => {
+
+    console.log(`Bot online como ${client.user.tag}`);
+
 });
 
-// Evento de leitura de mensagens
-client.on('messageCreate', async (message) => {
-  // Ignora mensagens enviadas por outros bots ou mensagens privadas
-  if (message.author.bot || !message.guild) return;
 
-  // Comando simples de ping
-  if (message.content === '!ping') {
-    return message.reply(`🏓 Pong! A latência atual é de ${client.ws.ping}ms.`);
-  }
+// INTERAÇÕES
 
-  // Exemplo de outro comando
-  if (message.content === '!oi') {
-    return message.reply(`Olá, ${message.author}! Como posso ajudar?`);
-  }
+client.on("interactionCreate", async interaction => {
+
+
+    // COMANDO /cargo
+
+    if (interaction.isChatInputCommand()) {
+
+
+        if (interaction.commandName === "cargo") {
+
+
+            const embed = new EmbedBuilder()
+
+                .setColor("#8b00ff")
+
+                .setTitle("🖤 Ganhe seu cargo exclusivo!")
+
+                .setDescription(
+`
+Quer fazer parte da comunidade **LARPANDO**?
+
+Siga as regras, participe da comunidade e receba seu cargo de membro.
+
+Clique no botão abaixo para liberar seu acesso.
+`
+                )
+
+                .setImage("https://media.discordapp.net/attachments/1534347334803132529/1534347409851678780/dff9d4ec-fc56-4c6f-afb9-710617ccc2bb.png")
+
+                .setFooter({
+                    text: "LARPANDO • Comunidade"
+                });
+
+
+
+            const botao = new ActionRowBuilder()
+
+                .addComponents(
+
+                    new ButtonBuilder()
+
+                        .setCustomId("receber_cargo")
+
+                        .setLabel("Receber")
+
+                        .setStyle(ButtonStyle.Primary)
+
+                );
+
+
+
+            await interaction.reply({
+
+                embeds: [embed],
+
+                components: [botao]
+
+            });
+
+
+        }
+
+    }
+
+
+
+    // BOTÃO RECEBER CARGO
+
+    if (interaction.isButton()) {
+
+
+        if (interaction.customId === "receber_cargo") {
+
+
+            const cargo = interaction.guild.roles.cache.get(CARGO_ID);
+
+
+
+            if (!cargo) {
+
+                return interaction.reply({
+
+                    content: "❌ Cargo não encontrado.",
+
+                    ephemeral: true
+
+                });
+
+            }
+
+
+
+            try {
+
+
+                await interaction.member.roles.add(cargo);
+
+
+
+                await interaction.reply({
+
+                    content: "✅ Você recebeu seu cargo com sucesso!",
+
+                    ephemeral: true
+
+                });
+
+
+
+            } catch (error) {
+
+
+                console.error(error);
+
+
+
+                await interaction.reply({
+
+                    content: "❌ Não consegui entregar o cargo. Verifique minhas permissões.",
+
+                    ephemeral: true
+
+                });
+
+
+            }
+
+
+        }
+
+    }
+
+
 });
 
-// Tratamento de erros para evitar que a aplicação caia sem avisar
-process.on('unhandledRejection', (reason, promise) => {
-  console.error(' [Erro Não Tratado]:', reason);
-});
 
-process.on('uncaughtException', (error) => {
-  console.error(' [Exceção Capturada]:', error);
-});
+// LOGIN
 
-// Inicialização do Bot usando a variável de ambiente
 client.login(process.env.DISCORD_TOKEN);
