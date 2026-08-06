@@ -7,7 +7,10 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    MessageFlags
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle
 } = require("discord.js");
 
 
@@ -17,9 +20,7 @@ const client = new Client({
 
     intents: [
 
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.Guilds
 
     ]
 
@@ -31,7 +32,7 @@ const client = new Client({
 const CARGO_ID = "1534342563488731256";
 
 
-// SISTEMA DE CAPTCHA
+// SISTEMA CAPTCHA
 
 const captchas = new Map();
 
@@ -49,7 +50,9 @@ client.once("clientReady", () => {
 
 client.on("interactionCreate", async interaction => {
 
+
     try {
+
 
 
         // COMANDO /cargo
@@ -77,11 +80,13 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
 `
                     )
 
-                    .setImage("https://cdn.discordapp.com/attachments/1534347334803132529/1534372903188041779/Gemini_Generated_Image_szywz2szywz2szyw.png")
+                    .setImage(
+"https://cdn.discordapp.com/attachments/1534347334803131256/1534372903188041779/Gemini_Generated_Image_szywz2szywz2szyw.png"
+                    )
 
                     .setFooter({
 
-                        text: "LARPANDO • Verificação"
+                        text:"LARPANDO • Verificação"
 
                     });
 
@@ -105,9 +110,9 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
 
                 await interaction.reply({
 
-                    embeds: [embed],
+                    embeds:[embed],
 
-                    components: [botao]
+                    components:[botao]
 
                 });
 
@@ -115,13 +120,13 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
 
             }
 
-
         }
 
 
 
 
-        // BOTÃO DE VERIFICAÇÃO
+
+        // BOTÃO VERIFICAR
 
         if (interaction.isButton()) {
 
@@ -149,44 +154,220 @@ Para receber seu cargo de membro, clique no botão abaixo e complete a verifica�
 
 
 
-                await interaction.reply({
 
-                    content:
-`
-🔒 **Verificação LARPANDO**
+                const modal = new ModalBuilder()
 
-Digite o código abaixo no chat:
+                    .setCustomId("captcha_modal")
 
-\`${codigo}\`
+                    .setTitle("Verificação LARPANDO");
 
-Você tem 60 segundos.
-`,
 
-                    flags: MessageFlags.Ephemeral
 
-                });
+
+
+                const input = new TextInputBuilder()
+
+                    .setCustomId("codigo")
+
+                    .setLabel("Digite o código mostrado abaixo")
+
+                    .setPlaceholder(`Código: ${codigo}`)
+
+                    .setStyle(TextInputStyle.Short)
+
+                    .setRequired(true);
+
+
+
+
+                const row = new ActionRowBuilder()
+
+                    .addComponents(input);
+
+
+
+
+                modal.addComponents(row);
+
+
+
+
+                await interaction.showModal(modal);
+
+
 
 
 
                 setTimeout(() => {
 
+
                     captchas.delete(interaction.user.id);
 
-                }, 60000);
+
+                },60000);
 
 
 
             }
 
 
+
         }
+
+
+
+
+
+
+
+        // ENVIO DO CAPTCHA
+
+        if (interaction.isModalSubmit()) {
+
+
+
+            if (interaction.customId === "captcha_modal") {
+
+
+
+                const resposta =
+
+                    interaction.fields.getTextInputValue(
+                        "codigo"
+                    );
+
+
+
+                const codigo =
+
+                    captchas.get(
+                        interaction.user.id
+                    );
+
+
+
+
+
+                if (!codigo) {
+
+
+                    return interaction.reply({
+
+                        content:
+                        "❌ Seu captcha expirou. Clique novamente em verificar.",
+
+                        flags:MessageFlags.Ephemeral
+
+                    });
+
+
+                }
+
+
+
+
+
+                if (resposta !== codigo.toString()) {
+
+
+
+                    return interaction.reply({
+
+                        content:
+                        "❌ Código incorreto.",
+
+                        flags:MessageFlags.Ephemeral
+
+                    });
+
+
+
+                }
+
+
+
+
+
+                captchas.delete(
+
+                    interaction.user.id
+
+                );
+
+
+
+
+
+                const cargo =
+
+                    interaction.guild.roles.cache.get(
+                        CARGO_ID
+                    );
+
+
+
+
+
+                if (!cargo) {
+
+
+                    return interaction.reply({
+
+                        content:
+                        "❌ Cargo não encontrado.",
+
+                        flags:MessageFlags.Ephemeral
+
+                    });
+
+
+
+                }
+
+
+
+
+
+
+
+                await interaction.member.roles.add(cargo);
+
+
+
+
+
+
+
+                await interaction.reply({
+
+                    content:
+                    "✅ Verificação concluída! Você recebeu seu cargo.",
+
+                    flags:MessageFlags.Ephemeral
+
+                });
+
+
+
+
+            }
+
+
+
+        }
+
+
 
 
 
     } catch(error) {
 
 
-        console.error("Erro na interação:", error);
+
+        console.error(
+            "Erro na interação:",
+            error
+        );
 
 
 
@@ -195,109 +376,16 @@ Você tem 60 segundos.
 
             await interaction.reply({
 
-                content: "❌ Ocorreu um erro.",
+                content:
+                "❌ Ocorreu um erro.",
 
-                flags: MessageFlags.Ephemeral
+                flags:MessageFlags.Ephemeral
 
             });
 
 
-        }
-
-
-    }
-
-
-});
-
-
-
-
-// RESPOSTA DO CAPTCHA
-
-client.on("messageCreate", async message => {
-
-
-    if (message.author.bot) return;
-
-
-
-    const codigo = captchas.get(message.author.id);
-
-
-
-    if (!codigo) return;
-
-
-
-    if (message.content === codigo.toString()) {
-
-
-
-        captchas.delete(message.author.id);
-
-
-
-        const cargo = message.guild.roles.cache.get(CARGO_ID);
-
-
-
-        if (!cargo) {
-
-
-            return message.reply(
-
-                "❌ Cargo não encontrado."
-
-            );
-
 
         }
-
-
-
-        try {
-
-
-            await message.member.roles.add(cargo);
-
-
-
-            await message.reply(
-
-                "✅ Verificação concluída! Você recebeu seu cargo."
-
-            );
-
-
-
-        } catch(error) {
-
-
-            console.error(error);
-
-
-
-            await message.reply(
-
-                "❌ Não consegui entregar o cargo. Verifique minhas permissões."
-
-            );
-
-
-        }
-
-
-
-    } else {
-
-
-
-        await message.reply(
-
-            "❌ Código incorreto. Tente novamente."
-
-        );
 
 
     }
@@ -305,9 +393,15 @@ client.on("messageCreate", async message => {
 
 
 });
+
+
 
 
 
 // LOGIN
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(
+
+    process.env.DISCORD_TOKEN
+
+);
